@@ -1,0 +1,66 @@
+public class Customer
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public DateTime BirthDate { get; set; }
+    public ICollection<Sale> Sales { get; set; }
+}
+
+public class Car
+{
+    public int Id { get; set; }
+    public string Make { get; set; }
+    public string Model { get; set; }
+    public ICollection<Sale> Sales { get; set; }
+}
+
+public class Sale
+{
+    public int Id { get; set; }
+    public int CarId { get; set; }
+    public Car Car { get; set; }
+    public int CustomerId { get; set; }
+    public Customer Customer { get; set; }
+}
+2. Viết truy vấn LINQ để lấy dữ liệu:
+csharp
+Copy code
+using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+
+// Giả sử bạn có một lớp DbContext tên là ApplicationDbContext
+public class ApplicationDbContext : DbContext
+{
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Car> Cars { get; set; }
+    public DbSet<Sale> Sales { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        using var context = new ApplicationDbContext();
+        
+        var query = from sale in context.Sales
+                    join customer in context.Customers on sale.CustomerId equals customer.Id
+                    join car in context.Cars on sale.CarId equals car.Id
+                    select new
+                    {
+                        MaKH = customer.Id,
+                        TenKhachHang = customer.Name,
+                        NgaySinh = customer.BirthDate,
+                        NhanHieu = car.Make,
+                        Model = car.Model
+                    };
+        
+        var results = query.ToList();
+        
+        // In kết quả ra console hoặc xử lý theo cách bạn muốn
+        foreach (var item in results)
+        {
+            Console.WriteLine($"{item.MaKH} | {item.TenKhachHang} | {item.NgaySinh:dd/MM/yyyy} | {item.NhanHieu} | {item.Model}");
+        }
+    }
+}
