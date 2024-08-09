@@ -1,1 +1,88 @@
+using System.Linq;
+using System.Web.Mvc;
+using MyApp.Models;
+using MyApp.Data;
 
+namespace MyApp.Controllers
+{
+    public class ComponentController : Controller
+    {
+        private ApplicationDbContext db = new ApplicationDbContext();
+
+        // GET: Component/Create
+        public ActionResult Create()
+        {
+            ViewBag.SupplierID = new SelectList(db.Suppliers, "Id", "Name");
+            return View();
+        }
+
+        // POST: Component/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(Component model)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Components.Add(model);
+                db.SaveChanges();
+                return RedirectToAction("Index"); // Chuyển hướng về danh sách hoặc trang khác sau khi thành công
+            }
+
+            ViewBag.SupplierID = new SelectList(db.Suppliers, "Id", "Name", model.SupplierID);
+            return View(model);
+        }
+    }
+}
+4. Tạo View
+Tạo view Create.cshtml trong thư mục Views/Component để hiển thị form cho người dùng nhập dữ liệu:
+
+html
+Copy code
+@model MyApp.Models.Component
+
+@{
+    ViewBag.Title = "Create Component";
+}
+
+<h2>Create Component</h2>
+
+@using (Html.BeginForm("Create", "Component", FormMethod.Post)) 
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        <h4>Component</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.SupplierID, "Supplier", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("SupplierID", (SelectList)ViewBag.SupplierID, "Select Supplier", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.SupplierID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
